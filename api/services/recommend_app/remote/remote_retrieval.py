@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def _current_origin_headers() -> dict[str, str]:
-    if not has_request_context():
-        return {}
+    origin = request.headers.get("Origin") if has_request_context() else None
+    if origin:
+        return {"Origin": origin}
 
-    origin = request.headers.get("Origin")
-    if not origin:
+    console_web_url = getattr(dify_config, "CONSOLE_WEB_URL", "")
+    if not isinstance(console_web_url, str) or not console_web_url:
         return {}
-
-    return {"Origin": origin}
+    return {"Origin": console_web_url}
 
 
 class RemoteRecommendAppRetrieval(RecommendAppRetrievalBase):
