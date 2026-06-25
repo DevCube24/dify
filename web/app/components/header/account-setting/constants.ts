@@ -6,8 +6,8 @@ export const ACCOUNT_SETTING_MODAL_ACTION = 'showSettings'
 export const ACCOUNT_SETTING_TAB = {
   PROVIDER: 'provider',
   MEMBERS: 'members',
-  PERMISSIONS: 'permissions',
-  ACCESS_RULES: 'access-rules',
+  ROLES_AND_PERMISSIONS: 'roles-and-permissions',
+  PERMISSION_SET: 'permission-set',
   BILLING: 'billing',
   DATA_SOURCE: 'data-source',
   API_BASED_EXTENSION: 'custom-endpoint',
@@ -22,8 +22,8 @@ export const DEFAULT_ACCOUNT_SETTING_TAB = ACCOUNT_SETTING_TAB.MEMBERS
 
 const WORKSPACE_SETTING_TAB_VALUES = [
   ACCOUNT_SETTING_TAB.MEMBERS,
-  ACCOUNT_SETTING_TAB.PERMISSIONS,
-  ACCOUNT_SETTING_TAB.ACCESS_RULES,
+  ACCOUNT_SETTING_TAB.ROLES_AND_PERMISSIONS,
+  ACCOUNT_SETTING_TAB.PERMISSION_SET,
   ACCOUNT_SETTING_TAB.BILLING,
   ACCOUNT_SETTING_TAB.CUSTOM,
 ] as const
@@ -46,13 +46,6 @@ export const SETTINGS_TAB_VALUES = [
 ] as const
 
 export type SettingsTab = typeof SETTINGS_TAB_VALUES[number]
-
-export const isValidAccountSettingTab = (tab: string | null): tab is AccountSettingTab => {
-  if (!tab)
-    return false
-  return Object.values(ACCOUNT_SETTING_TAB).includes(tab as AccountSettingTab)
-}
-
 export const isValidSettingsTab = (tab: string | null): tab is SettingsTab => {
   if (!tab)
     return false
