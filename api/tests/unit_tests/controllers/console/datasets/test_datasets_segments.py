@@ -545,6 +545,41 @@ class TestDatasetDocumentSegmentUpdateApi:
         assert status == 200
         assert "data" in response
 
+    def test_patch_scopes_segment_to_document_path(self, app: Flask):
+        api = DatasetDocumentSegmentUpdateApi()
+        method = inspect.unwrap(api.patch)
+
+        payload = {"content": "updated"}
+        user = MagicMock(is_dataset_editor=True)
+        dataset = MagicMock(indexing_technique="economy")
+        document = MagicMock()
+
+        with (
+            app.test_request_context("/", json=payload),
+            patch.object(type(console_ns), "payload", payload),
+            patch(
+                "controllers.console.datasets.datasets_segments.DatasetService.get_dataset",
+                return_value=dataset,
+            ),
+            patch(
+                "controllers.console.datasets.datasets_segments.DocumentService.get_document",
+                return_value=document,
+            ),
+            patch(
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
+                return_value=None,
+            ) as get_segment_by_id,
+        ):
+            with pytest.raises(NotFound):
+                method(api, "tenant-1", user, "ds-1", "doc-1", "seg-1")
+
+        get_segment_by_id.assert_called_once_with(
+            segment_id="seg-1",
+            tenant_id="tenant-1",
+            dataset_id="ds-1",
+            document_id="doc-1",
+        )
+
     def test_patch_llm_bad_request(self, app: Flask):
         api = DatasetDocumentSegmentUpdateApi()
         method = inspect.unwrap(api.patch)
@@ -798,7 +833,7 @@ class TestChildChunkAddApi:
                 return_value=MagicMock(),
             ),
             patch(
-                "controllers.console.datasets.datasets_segments.db.session.scalar",
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
                 return_value=MagicMock(),
             ),
             patch(
@@ -841,7 +876,7 @@ class TestChildChunkAddApi:
                 return_value=document,
             ),
             patch(
-                "controllers.console.datasets.datasets_segments.db.session.scalar",
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
                 return_value=segment,
             ),
             patch(
@@ -882,7 +917,7 @@ class TestChildChunkAddApi:
                 return_value=document,
             ),
             patch(
-                "controllers.console.datasets.datasets_segments.db.session.scalar",
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
                 return_value=segment,
             ),
             patch(
@@ -922,8 +957,12 @@ class TestChildChunkUpdateApi:
                 return_value=document,
             ),
             patch(
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
+                return_value=segment,
+            ),
+            patch(
                 "controllers.console.datasets.datasets_segments.db.session.scalar",
-                side_effect=[segment, child_chunk],
+                return_value=child_chunk,
             ),
             patch(
                 "controllers.console.datasets.datasets_segments.DatasetService.check_dataset_permission",
@@ -961,8 +1000,12 @@ class TestChildChunkUpdateApi:
                 return_value=document,
             ),
             patch(
+                "controllers.console.datasets.datasets_segments.SegmentService.get_segment_by_id",
+                return_value=segment,
+            ),
+            patch(
                 "controllers.console.datasets.datasets_segments.db.session.scalar",
-                side_effect=[segment, child_chunk],
+                return_value=child_chunk,
             ),
             patch(
                 "controllers.console.datasets.datasets_segments.DatasetService.check_dataset_permission",
